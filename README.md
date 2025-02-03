@@ -1,0 +1,159 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/PyModel/niblet-skill-mcp/main/assets/niblet-logo-dark.svg">
+    <img alt="Niblet" src="https://raw.githubusercontent.com/PyModel/niblet-skill-mcp/main/assets/niblet-logo-light.svg" width="300">
+  </picture>
+</p>
+
+<p align="center">Real screen references and a design skill, for coding agents that build UI.</p>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/@pymodel/niblet"><img alt="npm" src="https://img.shields.io/npm/v/%40pymodel%2Fniblet?logo=npm&logoColor=white&label=npm&color=e8a33d&labelColor=0f1110"></a>
+  <a href="https://nodejs.org"><img alt="Node 24.15+" src="https://img.shields.io/badge/node-24.15%2B-30363d?logo=nodedotjs&logoColor=white&labelColor=0f1110"></a>
+  <a href="https://modelcontextprotocol.io"><img alt="MCP" src="https://img.shields.io/badge/mcp-server-30363d?logo=anthropic&logoColor=white&labelColor=0f1110"></a>
+  <a href="https://github.com/PyModel/niblet-skill-mcp/stargazers"><img alt="Stars" src="https://img.shields.io/github/stars/PyModel/niblet-skill-mcp?style=flat&logo=github&logoColor=white&label=stars&color=30363d&labelColor=0f1110"></a>
+  <a href="https://github.com/PyModel/niblet-skill-mcp/blob/main/LICENSE"><img alt="License: Apache-2.0" src="https://img.shields.io/badge/license-Apache--2.0-30363d?labelColor=0f1110"></a>
+  <a href="https://hits.sh/github.com/PyModel/niblet-skill-mcp/"><img alt="Visitors" src="https://hits.sh/github.com/PyModel/niblet-skill-mcp.svg?label=visitors&color=30363d&labelColor=0f1110"></a>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/PyModel/niblet-skill-mcp/main/assets/niblet-step-contract.svg" alt="Settle the contract" width="210">
+  <b>→</b>
+  <img src="https://raw.githubusercontent.com/PyModel/niblet-skill-mcp/main/assets/niblet-step-build.svg" alt="Build from your system" width="210">
+  <b>→</b>
+  <img src="https://raw.githubusercontent.com/PyModel/niblet-skill-mcp/main/assets/niblet-step-check.svg" alt="Check the rendered screen" width="210">
+</p>
+
+<p align="center">
+  By <a href="https://github.com/elkaix">elkaix</a> for <a href="https://github.com/PyModel">PyModel</a>
+</p>
+
+A coding agent building UI gets two things here: a design skill that keeps it working from your product rather than a generic template, and real screen references from the [Niblet](https://niblet.pymodel.com) catalogue when a specific visual question is still open.
+
+The skill settles the screen's job, its real states, and what counts as done before writing anything; it builds from the tokens and components already in your codebase; and it finishes by rendering the surface and exercising it, so a green build alone is not a pass.
+
+The skill works alone. The server is optional and needs a token.
+
+## Install the skill
+
+```sh
+npx skills add PyModel/niblet-skill-mcp --skill niblet -y
+```
+
+Or copy it yourself, keeping `references/`, `agents/`, `LICENSE`, and `NOTICE` alongside it:
+
+```sh
+cp -r skill/niblet ~/.claude/skills/niblet   # Claude Code
+cp -r skill/niblet ~/.pi/agent/skills/niblet # Pi (its skills CLI has no -g for this target yet)
+cp -r skill/niblet ~/.agents/skills/niblet   # agents that read ~/.agents/skills
+```
+
+Then ask for it by name:
+
+> Use Niblet to design the checkout empty and error states.
+
+The [workflow](skill/niblet/SKILL.md) settles the screen's job, primary action, hierarchy, existing tokens, real states, and acceptance criteria before writing anything. It finishes by rendering the surface and exercising it, so a green build on its own does not count as a pass.
+
+## Connect the server
+
+Pick one. For public catalogue access, use hosted MCP with the `niblet_at_…` account key created at [niblet.pymodel.com/account](https://niblet.pymodel.com/account):
+
+```sh
+claude mcp add --transport http niblet https://niblet-api.pymodel.com/mcp \
+  --header "Authorization: Bearer $NIBLET_ACCOUNT_KEY"
+```
+
+For Claude Desktop, claude.ai, or Claude mobile, which cannot send a key header, add hosted MCP as a custom connector and sign in instead: **Settings → Connectors → Add custom connector →** `https://niblet-api.pymodel.com/mcp`, then sign in to Niblet and allow access. No key is involved; revoke the grant any time under Connected apps at [niblet.pymodel.com/account](https://niblet.pymodel.com/account). Step-by-step screenshots: [niblet.pymodel.com/docs#claude](https://niblet.pymodel.com/docs#claude).
+
+For the token-free bundled skill resources, `niblet_help`, and `niblet_status`, run the local stdio adapter:
+
+```sh
+claude mcp add niblet -- npx -y @pymodel/niblet
+```
+
+Or use the equivalent host configuration:
+
+```json
+{
+  "mcpServers": {
+    "niblet": {
+      "command": "npx",
+      "args": ["-y", "@pymodel/niblet"]
+    }
+  }
+}
+```
+
+The local adapter's three catalogue tools call REST `/v1`, not hosted MCP. Public `niblet_at_…` account keys created at [niblet.pymodel.com/account](https://niblet.pymodel.com/account) authorize both `/v1` and `/mcp`. Set `NIBLET_TOKEN` to that key, plus `NIBLET_API_ORIGIN` and `NIBLET_MEDIA_ORIGIN` only when targeting a self-hosted deployment. Skill resources, `niblet_help`, and `niblet_status` configuration remain available with no token.
+
+**Ownership decision:** keep public, account-key catalogue access in the hosted HTTP MCP. Keep bundled resources, playbook prompts, local diagnostics, and the optional REST bridge in this stdio adapter. Do not proxy hosted MCP through this package or add its local-only surfaces to the hosted service; keep only the three shared catalogue contracts in lockstep.
+
+Node.js 24.15+; npx fetches the package on first launch. Keep every token in the host's secret/environment facility, never in a committed file or chat message.
+
+Saving the config does not register the server, so confirm it worked. `niblet_status` reports the configured origins, whether a usable token is present, and whether the API answers:
+
+```
+Token:        present (44 characters, not shown).
+Documents:    5/5 readable (niblet://skill, …).
+API check:    OK
+```
+
+## Tools
+
+| Tool | Use it for | Token |
+| --- | --- | --- |
+| `find_ui_references` | One concrete unresolved question about a layout, state, or interaction. Returns one to three real screens as inline images. | yes |
+| `find_ui_materials` | A font, icon, or animated icon role your design system does not already cover. Returns the recorded license with each result. | yes |
+| `get_design_reference` | All or selected `overview`, `colors`, `typography`, `components`, and `provenance` sections recorded for a web screen you already picked. Pass the `screenId` from a reference, or a pack slug. | yes |
+| `niblet_help` | "What can Niblet do?", or choosing between commands. Lists the four surface modes and every command; pass `command` for one entry. | no |
+| `niblet_status` | Diagnosing the connection before concluding the catalogue is empty. Never prints the token. | no |
+
+The three catalogue tools match the hosted service exactly. `niblet_help` and `niblet_status` are local-only.
+
+Each catalogue result keeps its human-readable text and images in MCP `content` and also returns validated `structuredContent`: typed references, typed materials, or a typed design reference. Calls made from the bundled skill identify its `metadata.version` through `clientSkillVersion`.
+
+Only web screens carry a design reference, and a web result says so in its own text, so an agent that finds a screen worth borrowing from can read the system behind it in one follow-up call.
+
+## Resources
+
+The bundled documents, served without a token. Cross-links between them are rewritten to these URIs, so an agent reading one can follow every reference.
+
+| URI | Contents |
+| --- | --- |
+| `niblet://skill` | The design workflow: modes, contract, state coverage, finish gate |
+| `niblet://skill/commands` | Every command, its scope, and what completion means |
+| `niblet://skill/connection` | Installing, invoking, and diagnosing the tools |
+| `niblet://skill/evidence` | When to pull an external reference, and how to use one |
+| `niblet://skill/native` | Platform constraints and the native finish gate |
+
+## Prompts
+
+The local adapter registers every command-playbook entry as an MCP prompt named `niblet-<command>` (for example, `niblet-polish` and `niblet-harden`). Prompt arguments accept an optional `target`. Hosts that expose MCP prompts can present them as native shortcuts; the standalone filesystem skill still uses ordinary language. Prompts need no token.
+
+
+## Configuration
+
+| Variable | Purpose |
+| --- | --- |
+| `NIBLET_TOKEN` | Operator token for this adapter's configured REST API origin. Not a public `niblet_at_…` account key. |
+| `NIBLET_API_ORIGIN` | Retarget at a local deployment. Unset for production. |
+| `NIBLET_MEDIA_ORIGIN` | Same, for images. Unset for production. |
+
+## Contributing
+
+```sh
+git clone https://github.com/PyModel/niblet-skill-mcp
+cd niblet-skill-mcp
+npm ci --ignore-scripts
+npm test
+```
+
+`npm test` covers the tool contract and its failure boundaries. For anything touching startup or configuration, also connect a real MCP client and confirm the reported tool list and every `niblet://skill` resource. A resource that registers but never appears in `resources/list` is the failure unit tests cannot catch. For documentation, check that `npm pack --dry-run` still ships what you expect.
+
+[AGENTS.md](AGENTS.md) has the working agreement for pointing a coding agent at this repository.
+
+## License
+
+Apache-2.0, copyright 2026 Mohamed Elkholy (elkaix) and PyModel. See [LICENSE](LICENSE).
+
+The skill carries the same licence; keep [skill/niblet/NOTICE](skill/niblet/NOTICE) with it wherever it is installed.
