@@ -1,6 +1,6 @@
 {
   "name": "niblet-skill-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "MCP server and design skill that grounds coding-agent UI work in real product screens. Two tools, npx-installable.",
   "main": "src/index.js",
   "scripts": {
